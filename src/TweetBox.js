@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import "./TweetBox.css";
 import { Avatar,Button } from '@mui/material';
-import db from './firebase';
+import { db, auth } from './firebase';
+
 function TweetBox() {
   const [tweetMessage, setTweetMessage] = useState("");
   const [tweetImage, setTweetImage] = useState("");
@@ -17,6 +18,8 @@ function TweetBox() {
       image: tweetImage,
       avatar:
         "",
+      likesCount:0,
+      likeByUsers:[],
     });
 
     setTweetMessage("");

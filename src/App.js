@@ -1,22 +1,17 @@
 import React from 'react';
-import './App.css';
-import Sidebar from './Sidebar';
-import Feed from './Feed';
-import Widgets from './Widgets';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './Login';
+import Home from './Home';
+import Signup from './Signup';
 function App() {
   return (
-    // BEM
-    <div className="app">
-     <h1></h1>
-      
-    {/* SideBar */}
-    <Sidebar/>
-    {/* Feed */}
-    <Feed/>
-
-    {/* Widget */} 
-    <Widgets/>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/home" element={<Home />} />
+      {/* Redirect any other path to "/login" */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 

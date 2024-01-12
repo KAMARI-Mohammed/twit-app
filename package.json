@@ -12,8 +12,10 @@
     "@testing-library/user-event": "^13.5.0",
     "firebase": "^10.7.1",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.9.2",
     "react-dom": "^18.2.0",
     "react-flip-move": "^3.0.5",
+    "react-router-dom": "^6.21.2",
     "react-scripts": "5.0.1",
     "react-twitter-embed": "^4.0.4",
     "web-vitals": "^2.1.4"

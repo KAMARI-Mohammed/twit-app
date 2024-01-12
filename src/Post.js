@@ -13,6 +13,7 @@ const  Post= forwardRef(({
     text,
     image,
     avatar
+    
 },ref)=> {
   return (
     <div className='post'ref={ref}>

@@ -1,18 +1,20 @@
 import React , {useRef,useState} from 'react';
 import './Signup.css';
 import { useAuth } from "./AuthContext"
-import { Link, useNavigate } from "react-router-dom" 
+import { Link, useNavigate } from "react-router-dom"
 import { Form, Button, Card, Alert } from "react-bootstrap"
+import { updateProfile } from "firebase/auth";
 
 
 export default function Signup() {
     const emailRef = useRef()
     const passwordRef = useRef()
+    const userNameRef=useRef()
     const passwordConfirmRef = useRef()
     const { signup } = useAuth()
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const history = useNavigate()
+    const Navigate = useNavigate()
   
     async function handleSubmit(e) {
       e.preventDefault()
@@ -24,8 +26,13 @@ export default function Signup() {
       try {
         setError("")
         setLoading(true)
-        await signup(emailRef.current.value, passwordRef.current.value)
-        history.push("/")
+        const userCredential = await signup(emailRef.current.value, passwordRef.current.value);
+        const user = userCredential.user;
+
+        await updateProfile(user, {
+          displayName: userNameRef.current.value
+      });
+        Navigate("/login");
       } catch {
         setError("Failed to create an account")
       }
@@ -43,6 +50,10 @@ export default function Signup() {
               <Form.Group id="email">
                 <Form.Label>Email</Form.Label>
                 <Form.Control type="email" ref={emailRef} required />
+              </Form.Group>
+              <Form.Group id="username">
+                <Form.Label>UserName</Form.Label>
+                <Form.Control type="text" ref={userNameRef} required />
               </Form.Group>
               <Form.Group id="password">
                 <Form.Label>Password</Form.Label>

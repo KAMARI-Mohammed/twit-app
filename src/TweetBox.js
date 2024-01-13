@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import "./TweetBox.css";
 import { Avatar,Button } from '@mui/material';
 import { db, auth } from './firebase';
+import { useAuth } from "./AuthContext"
+
 
 function TweetBox() {
   const [tweetMessage, setTweetMessage] = useState("");
   const [tweetImage, setTweetImage] = useState("");
+  const { currentUser, logout } = useAuth()
+
 
   const sendTweet = (e) => {
     e.preventDefault();
 
     db.collection("posts").add({
-      displayName: "Kamari Mohammed",
-      username: "Medk",
+      displayName: currentUser.email,
+      username: currentUser.email,
       verified: true,
       text: tweetMessage,
       image: tweetImage,

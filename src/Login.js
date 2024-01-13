@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react"
 import { Form, Button, Card, Alert } from "react-bootstrap"
 import { useAuth } from "./AuthContext"
 import { Link, useNavigate } from "react-router-dom"
+import './Login.css';
 
 export default function Login() {
   const emailRef = useRef()
@@ -9,7 +10,7 @@ export default function Login() {
   const { login } = useAuth()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const history = useNavigate()
+  const Navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -18,7 +19,7 @@ export default function Login() {
       setError("")
       setLoading(true)
       await login(emailRef.current.value, passwordRef.current.value)
-      history.push("/home")
+      Navigate("/home")
     } catch {
       setError("Failed to log in")
     }

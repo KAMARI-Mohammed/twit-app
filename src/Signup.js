@@ -14,7 +14,7 @@ export default function Signup() {
     const { signup } = useAuth()
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const Navigate = useNavigate()
+    const navigate = useNavigate()
   
     async function handleSubmit(e) {
       e.preventDefault()
@@ -24,22 +24,17 @@ export default function Signup() {
       }
   
       try {
-        setError("")
-        setLoading(true)
-        const userCredential = await signup(emailRef.current.value, passwordRef.current.value);
-        const user = userCredential.user;
-
-        await updateProfile(user, {
-          displayName: userNameRef.current.value
-      });
-        Navigate("/login");
+        setError("");
+        setLoading(true);
+        await signup(emailRef.current.value, passwordRef.current.value, userNameRef.current.value);
+        navigate("/login"); // Navigate to the home page or dashboard after successful signup
       } catch {
-        setError("Failed to create an account")
+        setError("Failed to create an account");
       }
   
-      setLoading(false)
+      setLoading(false);
     }
-  
+
     return (
       <>
         <Card>

@@ -2,17 +2,28 @@ import React , {useState,useEffect} from 'react';
 import "./Feed.css";
 import TweetBox from './TweetBox';
 import Post from './Post';
-import { db, auth } from './firebase';
+import { db } from './firebase';
 import FlipMove from "react-flip-move";
+import { collection, getDocs } from 'firebase/firestore';
 
 function Feed() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    db.collection("posts").onSnapshot((snapshot) =>
-      setPosts(snapshot.docs.map((doc) => doc.data()))
-    );
+    const fetchPosts = async () => {
+      // Récupère les documents de la collection 'posts' de Firestore
+      const querySnapshot = await getDocs(collection(db, 'posts'));
+      // Mappe chaque document en un objet avec un id et le reste des données du document
+      const postsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id, // L'ID du document Firebase
+        ...doc.data() // Les données du document
+      }));
+      setPosts(postsData); // Met à jour l'état avec les données des posts récupérés
+    };
+
+    fetchPosts();
   }, []);
+
 
   return (
     <div className='feed'>
@@ -26,13 +37,15 @@ function Feed() {
       <FlipMove>
       {posts.map((post) => (
           <Post
-            key={post.text}
+            key={post.id}
+            postId={post.id}
             displayName={post.displayName}
             username={post.username}
-            verifed={post.verifed}
+            verified={post.verified}
             text={post.text}
             avatar={post.avatar}
             image={post.image}
+            initialLikesCount={post.likesCount}
           />
         ))}
       </FlipMove>

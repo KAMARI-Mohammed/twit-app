@@ -15,7 +15,7 @@ function TweetBox() {
     e.preventDefault();
 
     db.collection("posts").add({
-      displayName: currentUser.email,
+      displayName: currentUser.displayName,
       username: currentUser.email,
       verified: true,
       text: tweetMessage,

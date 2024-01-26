@@ -6,22 +6,10 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PublishIcon from '@mui/icons-material/Publish';
-import { doc, updateDoc, arrayUnion, arrayRemove, increment,runTransaction,onSnapshot, collection, addDoc, serverTimestamp    } from 'firebase/firestore';
-import { db } from './firebase';
+import { doc,getDoc, onSnapshot, runTransaction, increment, arrayRemove, arrayUnion, collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';import { db } from './firebase';
 import { useAuth } from "./AuthContext"
 import CommentInput from './CommentInput';
-
-const addCommentToTweet = async (tweetId, commentContent, userId) => {
-  const commentRef = collection(db, 'tweets', tweetId, 'comments');
-  const newComment = {
-    content: commentContent,
-    author: userId,
-    createdAt: serverTimestamp()
-  };
-
-  await addDoc(commentRef, newComment);
-};
-
+import Comment from './Comment';
 
 const Post = forwardRef(({
   displayName,
@@ -34,9 +22,22 @@ const Post = forwardRef(({
   likedByUsers = [],
   initialLikesCount,
 }, ref) => {
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
   const { currentUser } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  // Gestionnaire pour basculer l'affichage des commentaires
+  const handleToggleComments = () => {
+    setShowComments(!showComments);
+    if (!showComments && comments.length === 0) {
+      // Charge les commentaires seulement s'ils n'ont pas encore été chargés
+      const commentsQuery = query(collection(db, 'tweets', postId, 'comments'), orderBy('createdAt', 'desc'));
+      onSnapshot(commentsQuery, (snapshot) => {
+        setComments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+    }
+  };
 
   useEffect(() => {
     if (!postId) return;
@@ -52,9 +53,20 @@ const Post = forwardRef(({
         return unsubscribe;
       }, [postId, currentUser]);
 
-    const handleCommentSubmit = async (comment) => {
+      const handleCommentSubmit = async (commentContent) => {
         if (currentUser) {
-          await addCommentToTweet(postId, comment, currentUser.uid);
+          const userRef = doc(db, 'users', currentUser.uid); // Chemin vers le document de l'utilisateur
+          const userDoc = await getDoc(userRef);
+          const userName = currentUser.displayName || "Utilisateur anonyme";
+
+          const commentRef = collection(db, 'tweets', postId, 'comments');
+          const newComment = {
+            content: commentContent,
+            author: currentUser.uid,
+            authorName: userName, // Stockez le nom d'utilisateur ici
+            createdAt: serverTimestamp()
+          };
+          await addDoc(commentRef, newComment);
         } else {
           console.error("L'utilisateur doit être connecté pour commenter");
         }
@@ -92,38 +104,53 @@ const Post = forwardRef(({
   };
 
   return (
-    <div className='post'ref={ref}>
-    <div className='post__avatar'>
-      <Avatar src={avatar}></Avatar>
-    </div>
-    <div className="post__body">
-      <div className="post__header">
-        <div className="post__headerText">
-        <h3>{displayName}{" "} <span className="post__headerSpecial">
-        {verified && <VerifiedUserIcon className="post__badge"></VerifiedUserIcon>} @{username}
-        </span></h3>
+    <div className='post' ref={ref}>
+      <div className='post__avatar'>
+        <Avatar src={avatar}></Avatar>
+      </div>
+      <div className="post__body">
+        <div className="post__header">
+          <div className="post__headerText">
+            <h3>
+              {displayName}{" "}
+              <span className="post__headerSpecial">
+                {verified && <VerifiedUserIcon className="post__badge" />} @{username}
+              </span>
+            </h3>
+          </div>
+          <div className='post__headerDescription'>
+            <p>{text}</p>
+          </div>
         </div>
-        <div className='post__headerDescription'>
-          <p> {text} </p>
-        </div>
-        <img src={image} alt="">
-        </img>
+        {image && <img src={image} alt="Post" />}
         <div className='post__footer'>
-        <ChatBubbleOutlineIcon fontSize="small" onClick={handleCommentSubmit}></ChatBubbleOutlineIcon>
-        <RepeatIcon fontSize="small"></RepeatIcon>
-        <FavoriteBorderIcon fontSize="small" onClick={handleLike}></FavoriteBorderIcon>
-        <span>{likesCount} likes</span> {/* Display the likes count here */}
-        <PublishIcon fontSize="small"></PublishIcon>
-        <div>
-      {/* Contenu du tweet et autres éléments */}
-      <CommentInput onCommentSubmit={handleCommentSubmit} />
-      {/* Autres éléments de l'interface utilisateur */}
+          <ChatBubbleOutlineIcon fontSize="small" onClick={handleToggleComments} />
+          <RepeatIcon fontSize="small" />
+          <FavoriteBorderIcon fontSize="small" onClick={handleLike} />
+          <span>{likesCount} likes</span>
+          <PublishIcon fontSize="small" />
+        </div>
+        {showComments && (  
+          <div className="post__comments">
+            <CommentInput onCommentSubmit={handleCommentSubmit} />
+            {comments.map(comment => (
+              <Comment key={comment.id} content={comment.content} authorName={comment.authorName} createdAt={comment.createdAt} />            ))}
+          </div>
+        )}
+      </div>
     </div>
-        </div>
-        </div>
-        </div>
-    </div>
-  )
+  );
 });
 
 export default Post
+
+const addCommentToTweet = async (tweetId, commentContent, userId) => {
+  const commentRef = collection(db, 'tweets', tweetId, 'comments');
+  const newComment = {
+    content: commentContent,
+    author: userId,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(commentRef, newComment);
+};

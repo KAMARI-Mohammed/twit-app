@@ -3,6 +3,7 @@ import "./TweetBox.css";
 import { Avatar,Button } from '@mui/material';
 import { db, auth } from './firebase';
 import { useAuth } from "./AuthContext"
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 
 function TweetBox() {
@@ -24,6 +25,7 @@ function TweetBox() {
         "",
       likesCount:0,
       likeByUsers:[],
+      createdAt: serverTimestamp()
     });
 
     setTweetMessage("");

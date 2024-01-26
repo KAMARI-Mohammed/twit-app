@@ -4,26 +4,30 @@ import TweetBox from './TweetBox';
 import Post from './Post';
 import { db } from './firebase';
 import FlipMove from "react-flip-move";
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy  } from 'firebase/firestore';
 
 function Feed() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      // Récupère les documents de la collection 'posts' de Firestore
-      const querySnapshot = await getDocs(collection(db, 'posts'));
-      // Mappe chaque document en un objet avec un id et le reste des données du document
-      const postsData = querySnapshot.docs.map((doc) => ({
-        id: doc.id, // L'ID du document Firebase
-        ...doc.data() // Les données du document
+    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+  
+    // S'abonner aux mises à jour de la collection de posts
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const postsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
       }));
-      setPosts(postsData); // Met à jour l'état avec les données des posts récupérés
-    };
-
-    fetchPosts();
+      setPosts(postsData);
+    }, (error) => {
+      // Afficher les erreurs de requête dans la console
+      console.error("Erreur lors de l'écoute des mises à jour des posts: ", error);
+    });
+  
+    // Retourner une fonction pour se désabonner de l'écouteur
+    return () => unsubscribe();
   }, []);
-
+  
 
   return (
     <div className='feed'>
